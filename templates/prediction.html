@@ -1,0 +1,501 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">Health Questionnaire</h2>
+        <p class="text-gray-600">Answer these simple questions about your health to estimate your risk.</p>
+    </div>
+
+    {% if not current_user.is_authenticated %}
+    <div class="bg-blue-50 border-l-4 border-healthcare-blue text-blue-800 p-4 rounded-r-lg mb-8 flex items-start shadow-sm fade-in">
+        <i class="fa-solid fa-circle-info text-xl mr-3 mt-0.5 text-healthcare-blue"></i>
+        <div>
+            <p class="font-bold text-sm">Guest Mode Active</p>
+            <p class="text-sm mt-0.5">Guest mode does not save prediction history. <a href="/" class="underline font-semibold hover:text-blue-600 focus:outline-none">Log in or Register</a> to track your heart health over time.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <form id="health-form" action="/predict" method="POST" class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        
+        <!-- Voice Input Section -->
+        <div class="mb-8 border-b border-gray-100 pb-8">
+            <h3 class="font-bold text-gray-800 mb-3 text-center"><i class="fa-solid fa-microphone-lines text-healthcare-red"></i> Voice Assistant: Answer Questions by Speaking</h3>
+            <button type="button" id="voice-btn" class="w-full bg-blue-50 text-healthcare-blue border-2 border-blue-200 py-4 rounded-xl font-bold flex items-center justify-center hover:bg-blue-100 transition shadow-sm">
+                <i class="fa-solid fa-microphone text-2xl mr-3"></i> Tap to Start Voice Interview
+            </button>
+            <button type="button" id="voice-cancel-btn" class="w-full bg-red-50 text-red-600 border-2 border-red-200 py-3 rounded-xl font-bold flex items-center justify-center hover:bg-red-100 transition shadow-sm mt-2 hidden">
+                <i class="fa-solid fa-stop mr-2"></i> Stop Voice Interview
+            </button>
+            <!-- Progress bar -->
+            <div id="voice-progress-wrap" class="hidden mt-4">
+                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                    <span id="voice-progress-label">Question 1 of 11</span>
+                    <span id="voice-progress-pct">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                    <div id="voice-progress-bar" class="bg-healthcare-blue h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="voice-status" class="text-sm font-medium text-center text-blue-600 mt-3 hidden p-3 bg-blue-50 rounded-lg"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            
+            <!-- Age block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-calendar-days text-healthcare-blue mr-1 w-5 text-center"></i> What is your age?
+                </label>
+                <input type="number" name="Age" required min="1" max="120" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition" placeholder="e.g. 55">
+            </div>
+
+            <!-- Sex block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-venus-mars text-healthcare-blue mr-1 w-5 text-center"></i> Select your gender
+                </label>
+                <select name="Sex" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select gender</option>
+                    <option value="1">Male</option>
+                    <option value="0">Female</option>
+                </select>
+            </div>
+
+            <!-- Chest Pain Type block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-lungs text-healthcare-blue mr-1 w-5 text-center"></i> Do you experience chest discomfort?
+                </label>
+                <select name="ChestPainType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No pain">No pain</option>
+                    <option value="Mild discomfort">Mild discomfort</option>
+                    <option value="Chest pain during activity">Chest pain during activity</option>
+                    <option value="Severe pain even at rest">Severe pain even at rest</option>
+                </select>
+            </div>
+
+            <!-- Resting BP block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-stethoscope text-healthcare-blue mr-1 w-5 text-center"></i> Have you ever been diagnosed with high blood pressure?
+                </label>
+                <select name="RestingBP" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Cholesterol block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-vial text-healthcare-blue mr-1 w-5 text-center"></i> Have you been diagnosed with high cholesterol?
+                </label>
+                <select name="Cholesterol" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Not sure">Not sure</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Fasting BS block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-spoon text-healthcare-blue mr-1 w-5 text-center"></i> Do you have diabetes?
+                </label>
+                <select name="FastingBS" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Resting ECG block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1" title="Heart Rhythm">
+                    <i class="fa-solid fa-heart-circle-bolt text-healthcare-blue mr-1 w-5 text-center"></i> Have you ever been diagnosed with heart rhythm problems?
+                </label>
+                <select name="RestingECG" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Not sure">Not sure</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Max HR block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-heart-pulse text-healthcare-blue mr-1 w-5 text-center"></i> Do you feel breathless during mild activity like walking?
+                </label>
+                <select name="MaxHR" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Often">Often</option>
+                </select>
+            </div>
+
+            <!-- Exercise Angina block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-person-running text-healthcare-blue mr-1 w-5 text-center"></i> Do you feel chest pain during exercise?
+                </label>
+                <select name="ExerciseAngina" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Oldpeak block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-chart-line text-healthcare-blue mr-1 w-5 text-center"></i> Do you feel unusual fatigue during physical activity?
+                </label>
+                <select name="Oldpeak" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Often">Often</option>
+                </select>
+            </div>
+
+            <!-- ST Slope block -->
+            <div class="relative group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fa-solid fa-arrow-trend-up text-healthcare-blue mr-1 w-5 text-center"></i> Has a doctor ever told you that your heart test results were abnormal?
+                </label>
+                <select name="ST_Slope" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-healthcare-blue focus:border-healthcare-blue outline-none transition bg-white">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="No">No</option>
+                    <option value="Not sure">Not sure</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+            
+        </div>
+
+        <div class="mt-10 border-t border-gray-100 pt-6">
+            <button type="submit" class="w-full bg-healthcare-blue text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-200 shadow-lg transform hover:-translate-y-1 flex items-center justify-center">
+                <span class="btn-text flex items-center"><i class="fa-solid fa-heart-pulse mr-2 border border-white rounded-full p-1 text-sm bg-healthcare-red"></i> Evaluate My Heart Risk</span>
+                <i class="fa-solid fa-circle-notch fa-spin hidden ml-2 spinner-icon"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // --- Form submit spinner ---
+    document.getElementById('health-form').addEventListener('submit', function() {
+        const btn = this.querySelector('button[type="submit"]');
+        const text = btn.querySelector('.btn-text');
+        const spinner = btn.querySelector('.spinner-icon');
+        
+        btn.disabled = true;
+        btn.classList.add('opacity-80', 'cursor-not-allowed', 'transform-none');
+        text.classList.add('opacity-50');
+        spinner.classList.remove('hidden');
+    });
+
+    // ============================================================
+    // STEP-BY-STEP VOICE INTERVIEW SYSTEM
+    // ============================================================
+    const voiceBtn = document.getElementById('voice-btn');
+    const voiceCancelBtn = document.getElementById('voice-cancel-btn');
+    const voiceStatus = document.getElementById('voice-status');
+    const progressWrap = document.getElementById('voice-progress-wrap');
+    const progressBar = document.getElementById('voice-progress-bar');
+    const progressLabel = document.getElementById('voice-progress-label');
+    const progressPct = document.getElementById('voice-progress-pct');
+
+    // Define questions with simple spoken text and how to parse the answer
+    const voiceQuestions = [
+        {
+            speak: "How old are you? Please say your age as a number.",
+            field: "Age",
+            type: "number",
+            parse: (text) => {
+                const m = text.match(/(\d+)/);
+                return m ? m[1] : null;
+            }
+        },
+        {
+            speak: "Are you male or female?",
+            field: "Sex",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('female') || t.includes('woman') || t.includes('girl')) return "0";
+                if (t.includes('male') || t.includes('man') || t.includes('boy')) return "1";
+                return null;
+            }
+        },
+        {
+            speak: "Do you experience any chest pain or discomfort? You can say no pain, mild discomfort, pain during activity, or severe pain at rest.",
+            field: "ChestPainType",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('severe') || t.includes('rest')) return "Severe pain even at rest";
+                if (t.includes('activity') || t.includes('exercise') || t.includes('walk')) return "Chest pain during activity";
+                if (t.includes('mild') || t.includes('little') || t.includes('slight')) return "Mild discomfort";
+                if (t.includes('no') || t.includes('none') || t.includes('don\'t')) return "No pain";
+                return null;
+            }
+        },
+        {
+            speak: "Have you ever been diagnosed with high blood pressure? Say yes, no, or sometimes.",
+            field: "RestingBP",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('sometimes') || t.includes('occasional')) return "Sometimes";
+                if (t.includes('yes') || t.includes('yeah') || t.includes('diagnosed')) return "Yes";
+                if (t.includes('no') || t.includes('nope') || t.includes('don\'t') || t.includes('never')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Have you been diagnosed with high cholesterol? Say yes, no, or not sure.",
+            field: "Cholesterol",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('not sure') || t.includes('don\'t know') || t.includes('unsure')) return "Not sure";
+                if (t.includes('yes') || t.includes('yeah') || t.includes('high')) return "Yes";
+                if (t.includes('no') || t.includes('nope') || t.includes('never')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Do you have diabetes? Say yes or no.",
+            field: "FastingBS",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('yes') || t.includes('yeah') || t.includes('diabetic')) return "Yes";
+                if (t.includes('no') || t.includes('nope') || t.includes('don\'t')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Have you ever been diagnosed with heart rhythm problems? Say yes, no, or not sure.",
+            field: "RestingECG",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('not sure') || t.includes('don\'t know') || t.includes('unsure')) return "Not sure";
+                if (t.includes('yes') || t.includes('yeah')) return "Yes";
+                if (t.includes('no') || t.includes('nope') || t.includes('never')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Do you feel breathless during mild activity like walking? Say no, sometimes, or often.",
+            field: "MaxHR",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('often') || t.includes('always') || t.includes('frequently')) return "Often";
+                if (t.includes('sometimes') || t.includes('occasional') || t.includes('little')) return "Sometimes";
+                if (t.includes('no') || t.includes('nope') || t.includes('never')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Do you feel chest pain during exercise? Say yes or no.",
+            field: "ExerciseAngina",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('yes') || t.includes('yeah')) return "Yes";
+                if (t.includes('no') || t.includes('nope') || t.includes('never')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Do you feel unusual fatigue during physical activity? Say no, sometimes, or often.",
+            field: "Oldpeak",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('often') || t.includes('always') || t.includes('frequently')) return "Often";
+                if (t.includes('sometimes') || t.includes('occasional')) return "Sometimes";
+                if (t.includes('no') || t.includes('nope') || t.includes('never')) return "No";
+                return null;
+            }
+        },
+        {
+            speak: "Has a doctor ever told you that your heart test results were abnormal? Say yes, no, or not sure.",
+            field: "ST_Slope",
+            type: "select",
+            parse: (text) => {
+                const t = text.toLowerCase();
+                if (t.includes('not sure') || t.includes('don\'t know') || t.includes('unsure')) return "Not sure";
+                if (t.includes('yes') || t.includes('yeah')) return "Yes";
+                if (t.includes('no') || t.includes('nope') || t.includes('never')) return "No";
+                return null;
+            }
+        }
+    ];
+
+    let voiceInterviewActive = false;
+    let currentQuestionIndex = 0;
+
+    function updateProgress(index) {
+        const total = voiceQuestions.length;
+        const pct = Math.round(((index) / total) * 100);
+        progressLabel.textContent = `Question ${index + 1} of ${total}`;
+        progressPct.textContent = `${pct}%`;
+        progressBar.style.width = `${pct}%`;
+    }
+
+    function speakText(text) {
+        return new Promise((resolve) => {
+            if (!('speechSynthesis' in window)) { resolve(); return; }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.onend = () => resolve();
+            utterance.onerror = () => resolve();
+            window.speechSynthesis.speak(utterance);
+        });
+    }
+
+    function listenForAnswer() {
+        return new Promise((resolve, reject) => {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                reject('Speech Recognition not supported');
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                resolve(transcript);
+            };
+            recognition.onerror = (event) => {
+                reject(event.error);
+            };
+            recognition.onnomatch = () => {
+                reject('no-match');
+            };
+            recognition.start();
+        });
+    }
+
+    function highlightField(fieldName, success) {
+        const el = document.querySelector(`[name="${fieldName}"]`);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add(success ? 'ring-2' : 'ring-2', success ? 'ring-green-400' : 'ring-red-400');
+        setTimeout(() => {
+            el.classList.remove('ring-2', 'ring-green-400', 'ring-red-400');
+        }, 2000);
+    }
+
+    async function runVoiceInterview() {
+        voiceInterviewActive = true;
+        currentQuestionIndex = 0;
+        voiceBtn.classList.add('hidden');
+        voiceCancelBtn.classList.remove('hidden');
+        progressWrap.classList.remove('hidden');
+        voiceStatus.classList.remove('hidden');
+
+        await speakText("Hello! I will ask you a few simple health questions. Please answer after each question.");
+
+        for (let i = 0; i < voiceQuestions.length; i++) {
+            if (!voiceInterviewActive) break;
+            currentQuestionIndex = i;
+            const q = voiceQuestions[i];
+            updateProgress(i);
+
+            // Ask the question
+            voiceStatus.innerHTML = `<i class='fa-solid fa-volume-high fa-beat-fade mr-2 text-healthcare-blue'></i> <b>Asking:</b> "${q.speak}"`;
+            await speakText(q.speak);
+            if (!voiceInterviewActive) break;
+
+            // Listen for answer (with up to 2 retries)
+            let answered = false;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                if (!voiceInterviewActive) break;
+                voiceStatus.innerHTML = `<i class='fa-solid fa-ear-listen fa-beat mr-2 text-blue-500'></i> <b>Listening...</b> Please speak your answer now.`;
+
+                try {
+                    const transcript = await listenForAnswer();
+                    if (!voiceInterviewActive) break;
+
+                    const parsed = q.parse(transcript);
+                    if (parsed !== null) {
+                        // Successfully parsed
+                        const el = document.querySelector(`[name="${q.field}"]`);
+                        if (el) el.value = parsed;
+                        highlightField(q.field, true);
+                        voiceStatus.innerHTML = `<i class='fa-solid fa-circle-check mr-2 text-green-600'></i> Got it: "<b>${transcript}</b>"`;
+                        answered = true;
+                        // Short pause before next question
+                        await new Promise(r => setTimeout(r, 1200));
+                        break;
+                    } else {
+                        // Could not parse
+                        voiceStatus.innerHTML = `<i class='fa-solid fa-rotate-right mr-2 text-orange-500'></i> I heard "<b>${transcript}</b>" but couldn't understand. Let me ask again.`;
+                        highlightField(q.field, false);
+                        await speakText("Sorry, I didn't understand. Let me ask again.");
+                        await speakText(q.speak);
+                    }
+                } catch (err) {
+                    if (!voiceInterviewActive) break;
+                    voiceStatus.innerHTML = `<i class='fa-solid fa-rotate-right mr-2 text-orange-500'></i> Couldn't hear you. Let me try again.`;
+                    await speakText("I couldn't hear you. Let me try again.");
+                    await speakText(q.speak);
+                }
+            }
+            if (!answered && voiceInterviewActive) {
+                voiceStatus.innerHTML = `<i class='fa-solid fa-forward mr-2 text-gray-500'></i> Skipping this question. You can fill it manually.`;
+                await speakText("No worries. You can fill this one manually. Moving to the next question.");
+                await new Promise(r => setTimeout(r, 800));
+            }
+        }
+
+        if (voiceInterviewActive) {
+            // Finish
+            const pct = 100;
+            progressPct.textContent = `${pct}%`;
+            progressBar.style.width = `${pct}%`;
+            progressLabel.textContent = `Complete!`;
+            voiceStatus.innerHTML = `<i class='fa-solid fa-circle-check mr-2 text-green-600'></i> <b>All done!</b> Please review your answers above and click "Evaluate My Heart Risk".`;
+            await speakText("All done! Please review your answers and click the submit button when you're ready.");
+        }
+
+        stopVoiceInterview();
+    }
+
+    function stopVoiceInterview() {
+        voiceInterviewActive = false;
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        voiceBtn.classList.remove('hidden');
+        voiceCancelBtn.classList.add('hidden');
+        voiceBtn.innerHTML = '<i class="fa-solid fa-microphone text-2xl mr-3"></i> Restart Voice Interview';
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        voiceBtn.addEventListener('click', () => runVoiceInterview());
+        voiceCancelBtn.addEventListener('click', () => {
+            stopVoiceInterview();
+            voiceStatus.innerHTML = `<i class='fa-solid fa-stop mr-2 text-red-500'></i> Voice interview stopped. You can fill the form manually or restart.`;
+        });
+    } else {
+        voiceBtn.style.display = 'none';
+    }
+</script>
+{% endblock %}

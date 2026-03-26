@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Heart Risk Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        healthcare: {
+                            blue: '#1E3A8A',
+                            light: '#EFF6FF',
+                            red: '#DC2626',
+                            grey: '#F3F4F6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.8s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        body {
+            position: relative;
+            background-color: #EFF6FF;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url("{{ url_for('static', filename='images/cardio.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(3px);
+            opacity: 0.5;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="text-gray-800 font-sans flex flex-col min-h-screen">
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-[60] flex flex-col space-y-2"></div>
+
+    {% if not (request.path == '/' and not current_user.is_authenticated and not session.get('guest_mode')) %}
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center text-healthcare-blue font-bold text-xl">
+                        <i class="fa-solid fa-heart-pulse text-healthcare-red mr-2"></i> CardioAI
+                    </a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-2" id="desktop-nav">
+                    {% if current_user.is_authenticated %}
+                        <a href="/dashboard" class="nav-link text-gray-600 hover:text-healthcare-blue px-4 py-2 rounded-full font-medium transition-all duration-300">Home</a>
+                        <a href="/prediction" class="nav-link text-gray-600 hover:text-healthcare-blue px-4 py-2 rounded-full font-medium transition-all duration-300">Check Heart Risk</a>
+                        <a href="/about" class="nav-link text-gray-600 hover:text-healthcare-blue px-4 py-2 rounded-full font-medium transition-all duration-300">About</a>
+                        <a href="/logout" class="text-red-500 hover:bg-red-50 px-4 py-2 flex items-center rounded-full font-medium transition-all duration-300 ml-2 border border-transparent hover:border-red-100">
+                            <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+                        </a>
+                    {% else %}
+                        <a href="/" class="nav-link text-gray-600 hover:text-healthcare-blue px-4 py-2 rounded-full font-medium transition-all duration-300">Home</a>
+                        <a href="/prediction" class="nav-link text-gray-600 hover:text-healthcare-blue px-4 py-2 rounded-full font-medium transition-all duration-300">Check Heart Risk</a>
+                        <a href="/about" class="nav-link text-gray-600 hover:text-healthcare-blue px-4 py-2 rounded-full font-medium transition-all duration-300">About</a>
+                        <a href="/guest-clear" class="bg-healthcare-blue text-white hover:bg-blue-800 hover:shadow-lg px-5 py-2 flex items-center rounded-full font-medium transition-all duration-300 ml-2 transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-user-lock mr-2"></i> Login
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="flex items-center md:hidden">
+                    <button type="button" onclick="toggleMobileMenu()" class="text-gray-500 hover:text-healthcare-blue focus:outline-none p-2" aria-expanded="false">
+                        <i id="mobile-menu-icon" class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 transition-all duration-300">
+            <div class="px-4 pt-2 pb-4 space-y-1 flex flex-col" id="mobile-nav-links">
+                {% if current_user.is_authenticated %}
+                    <a href="/dashboard" class="mobile-nav-link text-gray-600 hover:bg-blue-50 block px-3 py-3 rounded-lg font-medium">Home</a>
+                    <a href="/prediction" class="mobile-nav-link text-gray-600 hover:bg-blue-50 block px-3 py-3 rounded-lg font-medium">Check Heart Risk</a>
+                    <a href="/about" class="mobile-nav-link text-gray-600 hover:bg-blue-50 block px-3 py-3 rounded-lg font-medium">About</a>
+                    <a href="/logout" class="text-red-500 hover:bg-red-50 block px-3 py-3 rounded-lg font-medium mt-2 border-t border-gray-100">
+                        <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="/" class="mobile-nav-link text-gray-600 hover:bg-blue-50 block px-3 py-3 rounded-lg font-medium">Home</a>
+                    <a href="/prediction" class="mobile-nav-link text-gray-600 hover:bg-blue-50 block px-3 py-3 rounded-lg font-medium">Check Heart Risk</a>
+                    <a href="/about" class="mobile-nav-link text-gray-600 hover:bg-blue-50 block px-3 py-3 rounded-lg font-medium">About</a>
+                    <div class="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-2">
+                        <a href="/guest-clear" class="w-full text-center bg-healthcare-blue text-white hover:bg-blue-800 px-3 py-3 rounded-lg font-medium shadow flex items-center justify-center">
+                            <i class="fa-solid fa-user-lock mr-2"></i> Login / Register
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="flex-grow w-full fade-in relative {% if not (request.path == '/' and not current_user.is_authenticated and not session.get('guest_mode')) %}max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8{% endif %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-lg mb-2 text-sm {% if category == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                            <i class="fa-solid {% if category == 'error' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %} mr-2"></i>{{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if not (request.path == '/' and not current_user.is_authenticated and not session.get('guest_mode')) %}
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-center justify-center text-sm text-gray-500 max-w-2xl mx-auto bg-gray-50 p-3 rounded-lg border border-gray-100 shadow-sm">
+                <i class="fa-solid fa-circle-info text-healthcare-red mr-1"></i> 
+                <strong>Medical Disclaimer:</strong> This system provides heart disease risk estimation using machine learning and should not be considered a medical diagnosis. Always consult a healthcare professional.
+            </p>
+            <p class="text-center text-xs text-gray-400 mt-4">© 2026 CardioAI Project</p>
+        </div>
+    </footer>
+    {% endif %}
+
+    <script>
+        // --- Navigation Active State Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const path = window.location.pathname;
+            
+            // Desktop Links
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if(link.getAttribute('href') === path) {
+                    link.classList.remove('text-gray-600', 'hover:text-healthcare-blue');
+                    link.classList.add('bg-healthcare-blue', 'text-white', 'shadow-md', 'transform', 'scale-105');
+                }
+            });
+
+            // Mobile Links
+            const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+            mobileLinks.forEach(link => {
+                if(link.getAttribute('href') === path) {
+                    link.classList.remove('text-gray-600', 'hover:bg-blue-50');
+                    link.classList.add('bg-healthcare-blue', 'text-white', 'shadow');
+                }
+            });
+        });
+
+        // --- Mobile Menu Toggle ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+            if(menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.classList.replace('fa-bars', 'fa-xmark');
+            } else {
+                menu.classList.add('hidden');
+                icon.classList.replace('fa-xmark', 'fa-bars');
+            }
+        }
+
+        // --- Toasts ---
+        function showToast(message, type='error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-lg shadow-xl text-sm font-medium transform transition-all duration-300 translate-x-full flex items-center ${type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'} mr-2"></i> ${message}`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>

@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    
+    {% if error %}
+    <div class="bg-red-50 border-l-4 border-healthcare-red p-6 rounded-lg shadow-sm mb-6">
+        <h3 class="text-red-800 font-bold text-xl flex items-center">
+            <i class="fa-solid fa-triangle-exclamation mr-2"></i> Error Processing Data
+        </h3>
+        <p class="text-red-600 mt-2">{{ error }}</p>
+        <a href="/prediction" class="mt-4 inline-block text-healthcare-red font-medium underline">Try Again</a>
+    </div>
+    {% else %}
+
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">Your Heart Risk Assessment</h2>
+        <p class="text-gray-500">Based on the provided medical profile.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Result Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col items-center p-8 justify-center">
+            
+            <h3 class="text-xl font-semibold text-gray-700 mb-6 w-full text-center">Prediction Probability</h3>
+            
+            <div class="relative w-full max-w-xs aspect-[2/1] mb-6">
+                <!-- Chart Container -->
+                <canvas id="gaugeChart"></canvas>
+                <!-- Center Text -->
+                <div class="absolute bottom-0 left-0 right-0 text-center transform translate-y-2">
+                    <span class="text-5xl font-extrabold text-gray-800">{{ result.probability_yes }}%</span>
+                </div>
+            </div>
+
+            <!-- Risk Badge -->
+            {% set badge_color = 'bg-green-100 text-green-800 border-green-300' %}
+            {% set icon_color = 'text-green-600' %}
+            {% set icon_type = 'fa-face-smile' %}
+            
+            {% if result.risk_level == 'Moderate' %}
+                {% set badge_color = 'bg-yellow-100 text-yellow-800 border-yellow-300' %}
+                {% set icon_color = 'text-yellow-600' %}
+                {% set icon_type = 'fa-face-meh' %}
+            {% elif result.risk_level == 'High' %}
+                {% set badge_color = 'bg-red-100 text-red-800 border-red-300 animate-pulse' %}
+                {% set icon_color = 'text-red-600' %}
+                {% set icon_type = 'fa-triangle-exclamation' %}
+            {% endif %}
+
+            <div class="mt-6 border-t border-gray-100 w-full pt-6 flex flex-col items-center">
+                <p class="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-2">Overall Risk Level</p>
+                <div class="px-6 py-2 rounded-full border-2 font-bold text-xl flex items-center {{ badge_color }}">
+                    <i class="fa-solid {{ icon_type }} {{ icon_color }} mr-2"></i>
+                    {{ result.risk_level }} Risk
+                </div>
+            </div>
+            
+            {% if result.risk_level == 'High' %}
+            <div class="w-full mt-4">
+                 <a href="https://www.google.com/maps/search/nearest+cardiology+hospital" target="_blank" class="block w-full text-center py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition shadow flex items-center justify-center">
+                    <i class="fa-solid fa-truck-medical mr-2"></i> Find Cardiology Hospital
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="w-full mt-4">
+                 <a href="/prediction" class="block w-full text-center py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition">
+                    Calculate Again
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Information Column -->
+        <div class="space-y-6 flex flex-col">
+            
+            <!-- Explainable AI -->
+            {% if result.top_factors %}
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-healthcare-blue border-b pb-2 mb-4 flex items-center">
+                    <i class="fa-solid fa-microchip mr-2"></i> Explainable AI: Top Risk Factors
+                </h3>
+                <ul class="space-y-4">
+                    {% for factor in result.top_factors %}
+                    <li>
+                        <div class="flex justify-between items-center mb-1 text-sm text-gray-700">
+                            <span class="font-medium">{{ loop.index }}. {{ factor.feature }}</span>
+                            <span class="font-bold text-healthcare-red">{{ factor.percent }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-healthcare-red h-2 rounded-full" style="width: {{ factor.percent }}%"></div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <p class="text-xs text-gray-500 mt-4 italic">*Percentage represents how much this factor influenced the AI's prediction.</p>
+            </div>
+            {% endif %}
+            
+            <!-- Risk Explanation -->
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 flex-grow">
+                <h3 class="text-lg font-bold text-healthcare-blue border-b pb-2 mb-4 flex items-center">
+                    <i class="fa-solid fa-clipboard-list mr-2"></i> Risk Explanation
+                </h3>
+                <p class="text-gray-600 text-sm mb-4">Your score reflects the estimated probability of cardiovascular disease based on clinical features compared against our machine learning database. Key contributing factors often include:</p>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-circle-check text-healthcare-blue mt-1 mr-2 text-xs"></i> <span>Elevated cholesterol and resting blood pressure</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-circle-check text-healthcare-blue mt-1 mr-2 text-xs"></i> <span>Abnormal ST slope or ECG readings</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-circle-check text-healthcare-blue mt-1 mr-2 text-xs"></i> <span>Age-related changes and physiological anomalies</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-circle-check text-healthcare-blue mt-1 mr-2 text-xs"></i> <span>Presence of exercise-induced angina</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Prevention Suggestions -->
+            <div class="bg-blue-50 rounded-2xl shadow-xl border border-blue-100 p-6 flex-grow">
+                <h3 class="text-lg font-bold text-healthcare-blue border-b border-blue-200 pb-2 mb-4 flex items-center">
+                    <i class="fa-solid fa-heart-circle-check mr-2"></i> Prevention Suggestions
+                </h3>
+                
+                {% if result.risk_level == 'High' %}
+                    <div class="bg-red-100 border-l-4 border-healthcare-red p-3 rounded mb-4 text-sm text-red-800">
+                        <strong>Urgent:</strong> We strongly recommend scheduling a comprehensive medical check-up with a cardiologist as soon as possible.
+                    </div>
+                {% endif %}
+
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li class="bg-white p-3 rounded shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fa-solid fa-person-running text-green-600"></i>
+                        </div>
+                        <span>Exercise regularly.</span>
+                    </li>
+                    <li class="bg-white p-3 rounded shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fa-solid fa-weight-scale text-blue-600"></i>
+                        </div>
+                        <span>Maintain healthy weight.</span>
+                    </li>
+                    <li class="bg-white p-3 rounded shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-orange-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fa-solid fa-burger text-orange-600"></i>
+                        </div>
+                        <span>Reduce salt and unhealthy foods.</span>
+                    </li>
+                    <li class="bg-white p-3 rounded shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fa-solid fa-ban-smoking text-gray-600"></i>
+                        </div>
+                        <span>Avoid smoking.</span>
+                    </li>
+                    <li class="bg-white p-3 rounded shadow-sm border border-gray-100 flex items-center">
+                        <div class="bg-purple-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fa-solid fa-user-doctor text-purple-600"></i>
+                        </div>
+                        <span>Visit a doctor for regular checkups.</span>
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('gaugeChart').getContext('2d');
+            const probability = {{ result.probability_yes }};
+            const remainder = 100 - probability;
+            
+            // Determine gauge color based on risk
+            let gaugeColor = '#22c55e'; // Green for low Default
+            if (probability >= 70) {
+                gaugeColor = '#ef4444'; // Red for high
+            } else if (probability >= 30) {
+                gaugeColor = '#eab308'; // Yellow for moderate
+            }
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [probability, remainder],
+                        backgroundColor: [gaugeColor, '#e5e7eb'],
+                        borderWidth: 0,
+                        circumference: 180,
+                        rotation: 270,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '80%',
+                    plugins: {
+                        tooltip: { enabled: false },
+                        legend: { display: false }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: false,
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        });
+    </script>
+    
+    {% endif %}
+
+</div>
+{% endblock %}

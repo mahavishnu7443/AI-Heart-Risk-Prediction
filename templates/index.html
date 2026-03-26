@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if current_user.is_authenticated %}
+<!-- Authenticated View: Original Hero Section -->
+<div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div class="md:flex">
+        <div class="md:flex-shrink-0 bg-healthcare-blue w-full md:w-1/3 flex items-center justify-center p-8 bg-gradient-to-br from-blue-900 to-blue-700">
+            <i class="fa-solid fa-heartbeat text-white text-9xl opacity-80 animate-pulse"></i>
+        </div>
+        <div class="p-10 flex flex-col justify-center w-full">
+            <div class="uppercase tracking-wide text-sm text-healthcare-red font-semibold mb-1">Early Detection Saves Lives</div>
+            <h1 class="mt-2 text-4xl leading-tight font-extrabold text-gray-900">AI-Based Early Heart Disease Risk Prediction & Prevention System</h1>
+            <p class="mt-4 text-lg text-gray-500">
+                A state-of-the-art machine learning model developed to accurately assess your cardiovascular risk factors and provide immediate, actionable insights to empower your health journey.
+            </p>
+            <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                <a href="/prediction" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-healthcare-red hover:bg-red-700 shadow-lg transition duration-200 transform hover:-translate-y-1">
+                    <i class="fa-solid fa-stethoscope mr-2"></i> Check Heart Risk
+                </a>
+                <a href="/about" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition duration-200">
+                    Learn More About The Model
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+
+{% if session.get('guest_mode') %}
+<!-- GUEST HOME PAGE: Informational view for users already browsing as guest -->
+<div class="space-y-8">
+    <!-- Hero -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="md:flex">
+            <div class="md:flex-shrink-0 bg-healthcare-blue w-full md:w-1/3 flex items-center justify-center p-8 bg-gradient-to-br from-blue-900 to-blue-700">
+                <i class="fa-solid fa-heartbeat text-white text-9xl opacity-80 animate-pulse"></i>
+            </div>
+            <div class="p-10 flex flex-col justify-center w-full">
+                <div class="uppercase tracking-wide text-sm text-healthcare-red font-semibold mb-1">Early Detection Saves Lives</div>
+                <h1 class="mt-2 text-4xl leading-tight font-extrabold text-gray-900">CardioAI – Heart Disease Risk Screening</h1>
+                <p class="mt-4 text-lg text-gray-500">
+                    AI-powered early detection system for cardiovascular risk assessment. Answer simple health questions and get an instant risk evaluation powered by machine learning.
+                </p>
+                <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <a href="/prediction" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-healthcare-red hover:bg-red-700 shadow-lg transition duration-200 transform hover:-translate-y-1">
+                        <i class="fa-solid fa-stethoscope mr-2"></i> Check Heart Risk
+                    </a>
+                    <a href="/about" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition duration-200">
+                        Learn More About The Model
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guest notice -->
+    <div class="bg-blue-50 border-l-4 border-healthcare-blue text-blue-800 p-4 rounded-r-lg flex items-start shadow-sm">
+        <i class="fa-solid fa-circle-info text-xl mr-3 mt-0.5 text-healthcare-blue"></i>
+        <div>
+            <p class="font-bold text-sm">You are browsing as a Guest</p>
+            <p class="text-sm mt-0.5">Your prediction history will not be saved. <a href="/" onclick="clearGuestAndGo(event)" class="underline font-semibold hover:text-blue-600">Create an account</a> to track your heart health over time.</p>
+        </div>
+    </div>
+
+    <!-- Feature cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-md p-6 text-center border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="bg-blue-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-healthcare-blue">
+                <i class="fa-solid fa-bolt text-xl"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">Fast Analysis</h3>
+            <p class="text-sm text-gray-500">Get interactive results in seconds using only 11 standard clinical features.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 text-center border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="bg-blue-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-healthcare-blue">
+                <i class="fa-solid fa-brain text-xl"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">Advanced ML</h3>
+            <p class="text-sm text-gray-500">Powered by a robust Gaussian Naive Bayes classifier processing complex medical data.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 text-center border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="bg-blue-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-healthcare-blue">
+                <i class="fa-solid fa-shield-heart text-xl"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">Preventative Care</h3>
+            <p class="text-sm text-gray-500">Receive tailored actionable suggestions immediately to improve heart health.</p>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="bg-white rounded-xl shadow-md p-8 border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center"><i class="fa-solid fa-list-check text-healthcare-blue mr-2"></i>How It Works</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-10 h-10 rounded-full bg-healthcare-blue text-white flex items-center justify-center text-lg font-bold mb-3">1</div>
+                <h4 class="font-bold text-gray-800 mb-1">Answer Questions</h4>
+                <p class="text-sm text-gray-500">Fill in simple health questions or use our voice assistant feature.</p>
+            </div>
+            <div class="flex flex-col items-center text-center">
+                <div class="w-10 h-10 rounded-full bg-healthcare-blue text-white flex items-center justify-center text-lg font-bold mb-3">2</div>
+                <h4 class="font-bold text-gray-800 mb-1">AI Analysis</h4>
+                <p class="text-sm text-gray-500">Our machine learning model processes your inputs and evaluates risk factors.</p>
+            </div>
+            <div class="flex flex-col items-center text-center">
+                <div class="w-10 h-10 rounded-full bg-healthcare-blue text-white flex items-center justify-center text-lg font-bold mb-3">3</div>
+                <h4 class="font-bold text-gray-800 mb-1">Get Results</h4>
+                <p class="text-sm text-gray-500">Receive a detailed risk report with actionable health recommendations.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function clearGuestAndGo(e) {
+        e.preventDefault();
+        fetch('/guest-clear').then(() => window.location.href = '/');
+    }
+</script>
+
+{% else %}
+<!-- FIRST VISIT: Authentication Landing Page -->
+<style>
+    @keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .bg-animated-gradient {
+        background-size: 200% 200%;
+        animation: gradientMove 12s ease infinite;
+    }
+    @keyframes cardFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    .animate-card-float {
+        animation: cardFloat 6s ease-in-out infinite;
+    }
+</style>
+
+<div class="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-100 bg-animated-gradient -z-10 overflow-hidden">
+    <!-- Floating abstract shapes -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-md max-h-md bg-blue-200 rounded-full mix-blend-multiply filter blur-[80px] opacity-50 animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-lg max-h-lg bg-healthcare-blue rounded-full mix-blend-multiply filter blur-[100px] opacity-20 animate-pulse" style="animation-duration: 7s;"></div>
+</div>
+
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-[0_20px_50px_rgba(30,58,138,0.15)] border border-white/60 overflow-hidden max-w-lg w-full transition-all duration-500 hover:shadow-[0_30px_60px_rgba(30,58,138,0.25)] animate-card-float fade-in">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-br from-healthcare-blue to-blue-800 p-8 text-center text-white relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 opacity-10">
+                <i class="fa-solid fa-heart-circle-bolt text-9xl"></i>
+            </div>
+            <div class="relative z-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm mb-4 border border-white/30 shadow-inner">
+                    <i class="fa-solid fa-heart-pulse text-3xl text-white"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">CardioAI</h1>
+                <h2 class="text-lg font-medium text-blue-100 mt-1">Heart Disease Risk Screening</h2>
+                <p class="text-sm text-blue-200 mt-3 max-w-sm mx-auto">AI-powered early detection system for cardiovascular risk assessment.</p>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-8">
+            <!-- Toggle -->
+            <div class="flex p-1 bg-gray-100 rounded-xl mb-8 relative shadow-inner">
+                <button onclick="switchAuthMode('login')" id="tab-login" class="flex-1 py-2 text-sm font-bold rounded-lg shadow-sm bg-white text-healthcare-blue transition-all transform hover:scale-[1.02]">Login</button>
+                <button onclick="switchAuthMode('register')" id="tab-register" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all transform hover:scale-[1.02]">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-5 fade-in" onsubmit="handleAuthSubmit(event, '/login')">
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-envelope text-gray-400"></i>
+                        </div>
+                        <input type="email" name="email" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-healthcare-blue focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="login-password" name="password" required class="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-healthcare-blue focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('login-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-healthcare-blue focus:outline-none">
+                            <i class="fa-solid fa-eye" id="login-password-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-healthcare-blue text-white py-3.5 rounded-xl font-bold text-lg hover:bg-blue-800 target-btn transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 flex justify-center items-center mt-2 group relative overflow-hidden">
+                    <span class="absolute inset-0 w-full h-full bg-white/20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-500"></span>
+                    <span class="btn-text relative z-10"><i class="fa-solid fa-right-to-bracket mr-2"></i> Login to Account</span>
+                    <i class="fa-solid fa-circle-notch fa-spin hidden ml-2 spinner-icon relative z-10"></i>
+                </button>
+                <div class="text-center">
+                    <button type="button" onclick="switchAuthMode('reset')" class="text-sm text-healthcare-blue hover:text-blue-800 hover:underline font-medium transition-colors focus:outline-none">
+                        <i class="fa-solid fa-key mr-1"></i> Forgot Password?
+                    </button>
+                </div>
+            </form>
+
+            <!-- Reset Password Form -->
+            <form id="reset-form" class="space-y-5 hidden fade-in" onsubmit="handleAuthSubmit(event, '/reset-password')">
+                <div class="text-center mb-2">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-50 text-orange-500 mb-2">
+                        <i class="fa-solid fa-unlock-keyhole text-xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-500">Enter your registered email and set a new password.</p>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Registered Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-envelope text-gray-400"></i>
+                        </div>
+                        <input type="email" name="email" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">New Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="reset-password" name="new_password" required class="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('reset-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-orange-500 focus:outline-none">
+                            <i class="fa-solid fa-eye" id="reset-password-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Confirm New Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock-open text-gray-400"></i>
+                        </div>
+                        <input type="password" id="reset-confirm-password" name="confirm_password" required class="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('reset-confirm-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-orange-500 focus:outline-none">
+                            <i class="fa-solid fa-eye" id="reset-confirm-password-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-lg hover:bg-orange-600 target-btn transition-all duration-300 shadow-lg flex justify-center items-center mt-2 group relative overflow-hidden">
+                    <span class="absolute inset-0 w-full h-full bg-white/20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-500"></span>
+                    <span class="btn-text relative z-10"><i class="fa-solid fa-key mr-2"></i> Reset Password</span>
+                    <i class="fa-solid fa-circle-notch fa-spin hidden ml-2 spinner-icon relative z-10"></i>
+                </button>
+                <div class="text-center">
+                    <button type="button" onclick="switchAuthMode('login')" class="text-sm text-gray-500 hover:text-healthcare-blue hover:underline font-medium transition-colors focus:outline-none">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Back to Login
+                    </button>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="space-y-5 hidden fade-in" onsubmit="handleAuthSubmit(event, '/register')">
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Full Name</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-id-card text-gray-400"></i>
+                        </div>
+                        <input type="text" name="name" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-healthcare-blue focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="John Doe">
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-envelope text-gray-400"></i>
+                        </div>
+                        <input type="email" name="email" required class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-healthcare-blue focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="register-password" name="password" required class="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-healthcare-blue focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('register-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-healthcare-blue focus:outline-none">
+                            <i class="fa-solid fa-eye" id="register-password-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Confirm Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock-open text-gray-400"></i>
+                        </div>
+                        <input type="password" id="confirm-password" name="confirm_password" required class="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-healthcare-blue focus:border-transparent outline-none transition text-sm text-gray-700" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('confirm-password')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-healthcare-blue focus:outline-none">
+                            <i class="fa-solid fa-eye" id="confirm-password-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-healthcare-blue text-white py-3.5 rounded-xl font-bold text-lg hover:bg-blue-800 target-btn transition-all duration-300 shadow-lg hover:shadow-cyan-500/30 flex justify-center items-center mt-2 group relative overflow-hidden">
+                    <span class="absolute inset-0 w-full h-full bg-white/20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-500"></span>
+                    <span class="btn-text relative z-10"><i class="fa-solid fa-user-plus mr-2"></i> Create Account</span>
+                    <i class="fa-solid fa-circle-notch fa-spin hidden ml-2 spinner-icon relative z-10"></i>
+                </button>
+            </form>
+
+            <div class="mt-8 border-t border-gray-100 pt-6">
+                <a href="/guest" class="w-full block text-center bg-gray-50 hover:bg-gray-100 text-gray-700 py-3.5 rounded-xl font-bold border border-gray-200 transition-colors shadow-sm text-sm group">
+                    Continue as Guest <span class="text-gray-400 font-normal ml-1 group-hover:text-gray-600 transition-colors">(No history tracking) <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchAuthMode(mode) {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const resetForm = document.getElementById('reset-form');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+
+        // Hide all forms first
+        loginForm.classList.add('hidden');
+        registerForm.classList.add('hidden');
+        resetForm.classList.add('hidden');
+
+        // Reset tab styles
+        tabLogin.classList.remove('bg-white', 'text-healthcare-blue', 'shadow-sm', 'transform', 'scale-[1.02]');
+        tabLogin.classList.add('text-gray-500');
+        tabRegister.classList.remove('bg-white', 'text-healthcare-blue', 'shadow-sm', 'transform', 'scale-[1.02]');
+        tabRegister.classList.add('text-gray-500');
+
+        if (mode === 'login') {
+            loginForm.classList.remove('hidden');
+            tabLogin.classList.add('bg-white', 'text-healthcare-blue', 'shadow-sm', 'transform', 'scale-[1.02]');
+            tabLogin.classList.remove('text-gray-500');
+        } else if (mode === 'register') {
+            registerForm.classList.remove('hidden');
+            tabRegister.classList.add('bg-white', 'text-healthcare-blue', 'shadow-sm', 'transform', 'scale-[1.02]');
+            tabRegister.classList.remove('text-gray-500');
+        } else if (mode === 'reset') {
+            resetForm.classList.remove('hidden');
+            // Neither tab is active during reset
+        }
+    }
+
+    function togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(inputId + '-eye');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    async function handleAuthSubmit(event, endpoint) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        const btn = form.querySelector('.target-btn');
+        const btnText = form.querySelector('.btn-text');
+        const spinner = form.querySelector('.spinner-icon');
+        
+        btn.disabled = true;
+        btnText.classList.add('opacity-0'); // hide text carefully without breaking layout
+        spinner.classList.remove('hidden');
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                body: formData,
+                redirect: 'follow'
+            });
+
+            if (response.redirected) {
+                if(response.url.includes('/dashboard')) {
+                    window.location.href = response.url;
+                    return;
+                }
+                if(response.url.includes('/login') && endpoint === '/register') {
+                    showToast("Account created successfully! Please log in.", "success");
+                    setTimeout(() => switchAuthMode('login'), 1500);
+                    form.reset();
+                    btn.disabled = false;
+                    btnText.classList.remove('opacity-0');
+                    spinner.classList.add('hidden');
+                    return;
+                }
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const flashElement = doc.querySelector('.mb-4 .p-4');
+            if (flashElement) {
+                const msg = flashElement.innerText.trim();
+                const isSuccess = flashElement.classList.contains('bg-green-100');
+                showToast(msg, isSuccess ? 'success' : 'error');
+            } else {
+                if(endpoint === '/login') showToast("Invalid email or password.");
+                else showToast("Registration failed. Please check your details.");
+            }
+        } catch (err) {
+            showToast("Network error. Please try again.");
+        } finally {
+            if(window.location.href.includes('/dashboard')) return; // redirecting
+            btn.disabled = false;
+            btnText.classList.remove('opacity-0');
+            spinner.classList.add('hidden');
+        }
+    }
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}
